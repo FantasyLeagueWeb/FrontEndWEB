@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-color: #007BFF;
+  --secondary-color: #28A745;
+  --accent-color: #FFA500;
+  --background-color: #F8F9FA;
+  --text-color: #212529;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  color: var(--text-color);
+   font-family: 'Inter', sans-serif;
+  color: #111827;
+
+  background: linear-gradient(to right, #e0f2fe, #fecaca);
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+p, input, button, a {
+  font-size: 1rem;
+}
+
+button, a {
+  transition: all 0.3s ease;
+}
+
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+}
+
+p, input, button, a {
+  font-weight: 400;
+}
