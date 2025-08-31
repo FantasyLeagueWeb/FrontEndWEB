@@ -135,6 +135,7 @@ export default function PaymentList() {
               <thead className="bg-indigo-600 text-white">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Approved Amount</th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Created At</th>
                   <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">Actions</th>
@@ -144,6 +145,7 @@ export default function PaymentList() {
                 {loading ? (
                   Array.from({ length: perPage }).map((_, i) => (
                     <tr key={i}>
+                      <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-20 animate-pulse" /></td>
                       <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-20 animate-pulse" /></td>
                       <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-24 animate-pulse" /></td>
                       <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-28 animate-pulse" /></td>
@@ -156,6 +158,11 @@ export default function PaymentList() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Link to={`/payments/${payment.userAmountRecahargeId}`} className="text-indigo-600 hover:text-indigo-800 font-semibold">
                           {currency(payment.userEnteredAmount)}
+                        </Link>
+                      </td>
+                       <td className="px-6 py-4 whitespace-nowrap">
+                        <Link to={`/payments/${payment.userAmountRecahargeId}`} className="text-indigo-600 hover:text-indigo-800 font-semibold">
+                          {currency(payment.adminApprovedAmount)}
                         </Link>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(payment.status)}</td>

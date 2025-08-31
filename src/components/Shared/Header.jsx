@@ -72,7 +72,14 @@ const Header = () => {
                   <NavItem to="/contests" label="Contests" />
                   <NavItem to="/fantasy-teams" label="Fantasy Teams" />
                   <NavItem to="/payments" label="Payments" />
+
+                <div className="hidden md:flex items-center space-x-1 text-gray-800 font-medium">
+              <span className="text-yellow-500">🪙</span>
+              <span>{balance.toFixed(2)}</span>
+            </div>
+
                 </>
+
               )
             ) : (
               <>
@@ -83,12 +90,12 @@ const Header = () => {
           </div>
 
           {/* Balance Display */}
-          {user && (
+          {/* {user && (
             <div className="hidden md:flex items-center space-x-1 text-gray-800 font-medium">
               <span className="text-yellow-500">🪙</span>
               <span>{balance.toFixed(2)}</span>
             </div>
-          )}
+          )} */}
 
           {/* User Avatar & Dropdown */}
           {user && (
@@ -109,13 +116,13 @@ const Header = () => {
 
               {isUserMenuOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-50 animate-fade-in-down">
-                  <Link
+                  {/* <Link
                     to="/profile"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsUserMenuOpen(false)}
                   >
                     Profile
-                  </Link>
+                  </Link> */}
                   <button
                     onClick={() => {
                       setIsUserMenuOpen(false);
@@ -151,12 +158,12 @@ const Header = () => {
       {/* Mobile Nav */}
       {isMenuOpen && (
         <div className="md:hidden px-4 pb-4 animate-slide-down">
-          {user && (
+          {/* {user && (
             <div className="flex items-center space-x-1 text-gray-800 font-medium py-2">
               <span className="text-yellow-500">🪙</span>
               <span>{balance.toFixed(2)}</span>
             </div>
-          )}
+          )} */}
           {user ? (
             user.role === 'admin' ? (
               <>
@@ -169,7 +176,12 @@ const Header = () => {
                 <NavItem to="/payment-requests" label="Payment Requests" mobile />
               </>
             ) : (
+              
               <>
+               <div className="flex items-center space-x-1 text-gray-800 font-medium py-2">
+              <span className="text-yellow-500">🪙</span>
+              <span>{balance.toFixed(2)}</span>
+            </div>
                 {/* <NavItem to="/matches" label="Matches" mobile /> */}
                 <NavItem to="/contests" label="Contests" mobile />
                 <NavItem to="/fantasy-teams" label="Fantasy Teams" mobile />

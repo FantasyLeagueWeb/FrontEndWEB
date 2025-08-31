@@ -194,25 +194,30 @@ const ContestDetail = () => {
           </motion.div>
         </div>
 
-        <div className="text-center space-x-4">
-          {isAdmin && (
-            <Link
-              to={`/contests/edit/${id}`}
-              className="inline-block bg-indigo-600 text-white px-6 py-2 rounded-full hover:bg-indigo-700 transition-colors duration-200 flex items-center transform hover:scale-105"
-            >
-              <FaEdit className="mr-2" /> Edit Contest
-            </Link>
-          )}
-          <button
-            onClick={handleCreateFantasyTeam}
-            className="inline-block bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition-colors duration-200 flex items-center transform hover:scale-105"
-          >
-            Create Fantasy Team
-          </button>
-        </div>
+     <div className="flex justify-center mt-6 space-x-6">
+  {user?.role?.toLowerCase() === 'admin' && (
+    <Link
+      to={`/contests/edit/${id}`}
+      className="bg-indigo-600 text-white px-6 py-2 rounded-full hover:bg-indigo-700 transition-colors duration-200 flex items-center transform hover:scale-105"
+    >
+      <FaEdit className="mr-2" />
+      Edit Contest
+    </Link>
+  )}
+  <button
+    onClick={handleCreateFantasyTeam}
+    className="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition-colors duration-200 flex items-center transform hover:scale-105"
+  >
+    Create Fantasy Team
+  </button>
+</div>
+
       </div>
     </motion.div>
   );
 };
 
 export default ContestDetail;
+
+
+
