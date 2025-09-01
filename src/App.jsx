@@ -32,6 +32,9 @@ import PaymentForm from './components/Payment/PaymentForm';
 import PaymentRequestList from './components/PaymentRequest/PaymentRequestList';
 import PaymentRequestDetail from './components/PaymentRequest/PaymentRequestDetail';
 import PaymentRequestForm from './components/PaymentRequest/PaymentRequestForm';
+import UserList from './components/User/UserList';
+import UserDetail from './components/User/UserDetail';
+import UserForm from './components/User/UserForm';
 
 const App = () => {
   return (
@@ -77,6 +80,10 @@ const App = () => {
               <Route path="/payment-requests" element={<PaymentRequestList />} />
               <Route path="/payment-requests/:id" element={<PaymentRequestDetail />} />
               <Route path="/payment-requests/add" element={<PaymentRequestForm />} />
+              <Route path="/users" element={<UserList />} />
+              <Route path="/users/:id" element={<UserDetail />} />
+              <Route path="/users/add" element={<UserForm />} />
+              <Route path="/users/edit/:id" element={<UserForm />} />
             </Routes>
           </div>
         </main>

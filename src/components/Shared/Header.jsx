@@ -65,6 +65,7 @@ const Header = () => {
                   <NavItem to="/contests" label="Contests" />
                   {/* <NavItem to="/payments" label="Payments" /> */}
                   <NavItem to="/payment-requests" label="Payment Requests" />
+                  <NavItem to="/users" label="Users" />
                 </>
               ) : (
                 <>
@@ -174,6 +175,7 @@ const Header = () => {
                 <NavItem to="/contests" label="Contests" mobile />
                 {/* <NavItem to="/payments" label="Payments" mobile /> */}
                 <NavItem to="/payment-requests" label="Payment Requests" mobile />
+                <NavItem to="/users" label="Users" mobile />
               </>
             ) : (
               
