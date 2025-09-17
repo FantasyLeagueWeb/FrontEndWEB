@@ -35,6 +35,8 @@ import PaymentRequestForm from './components/PaymentRequest/PaymentRequestForm';
 import UserList from './components/User/UserList';
 import UserDetail from './components/User/UserDetail';
 import UserForm from './components/User/UserForm';
+import IdealQ from './components/Shared/ideal';
+
 
 const App = () => {
   return (
@@ -84,6 +86,7 @@ const App = () => {
               <Route path="/users/:id" element={<UserDetail />} />
               <Route path="/users/add" element={<UserForm />} />
               <Route path="/users/edit/:id" element={<UserForm />} />
+              <Route path="/runq" element={<IdealQ />} />
             </Routes>
           </div>
         </main>

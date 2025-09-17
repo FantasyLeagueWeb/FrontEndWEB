@@ -143,7 +143,8 @@ const FantasyTeamDetail = () => {
 
               {/* Controls: stack under the image on mobile, align right on larger screens */}
               <div className="flex items-center gap-2 mt-3 sm:mt-0">
-                {isLive && (
+                {/* {isLive && (
+                )} */}
                   <button
                     onClick={fetchTeam}
                     disabled={loading}
@@ -152,7 +153,7 @@ const FantasyTeamDetail = () => {
                   >
                     <FaSync className={`${loading ? 'animate-spin' : ''} mr-2`} /> {loading ? 'Refreshing' : 'Refresh'}
                   </button>
-                )}
+                
 
                 {/* <Link to={`/fantasy-teams/edit/${id}`} className="inline-flex items-center px-3 sm:px-4 py-2 rounded-full bg-indigo-600 text-white shadow hover:bg-indigo-700 text-sm">
                   <FaEdit className="mr-2" /> Edit

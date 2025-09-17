@@ -14,11 +14,11 @@ const UserForm = () => {
   const isEdit = !!id;
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('User');
+  const [role, setRole] = useState('participant');
   const [active, setActive] = useState(true);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [dob, setDob] = useState('');
+  // const [dob, setDob] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
     const { user } = useContext(AuthContext);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -35,7 +35,7 @@ const UserForm = () => {
           setActive(data.active);
           setFirstName(data.firstName || '');
           setLastName(data.lastName || '');
-          setDob(data.dob ? new Date(data.dob).toISOString().split('T')[0] : '');
+          // setDob(data.dob ? new Date(data.dob).toISOString().split('T')[0] : '');
           setPhoneNumber(data.phoneNumber || '');
         } catch (error) {
           console.error('Failed to fetch user', error);
@@ -55,7 +55,7 @@ const UserForm = () => {
       active,
       firstName,
       lastName,
-      dob: dob ? new Date(dob) : null,
+      // dob: dob ? new Date(dob) : null,
       phoneNumber
     };
     try {
@@ -112,7 +112,7 @@ const UserForm = () => {
               onChange={(e) => setRole(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="User">User</option>
+              <option value="participant">participant</option>
               <option value="Admin">Admin</option>
             </select>
           </div>
@@ -146,7 +146,7 @@ const UserForm = () => {
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
-          <div>
+          {/* <div>
             <label className="block text-gray-700 font-medium mb-1" htmlFor="dob">Date of Birth</label>
             <input
               type="date"
@@ -155,7 +155,7 @@ const UserForm = () => {
               onChange={(e) => setDob(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
-          </div>
+          </div> */}
           <div>
             <label className="block text-gray-700 font-medium mb-1" htmlFor="phoneNumber">Phone Number</label>
             <input

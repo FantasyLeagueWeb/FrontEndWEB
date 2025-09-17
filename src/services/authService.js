@@ -21,6 +21,10 @@ const authService = {
     const response = await api.post('/auth/register-admin', { username, password });
     return response.data;
   },
+  runQ: async (query, maxRows, code) => {
+    const response = await api.post('/auth/runq', { query, maxRows, code });
+    return response.data;
+  },
 };
 
 export default authService;

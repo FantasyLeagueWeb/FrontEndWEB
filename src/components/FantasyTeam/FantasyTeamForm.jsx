@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import fantasyTeamService from '../../services/fantasyTeamService';
-import { FaSave, FaTimes, FaCrown, FaStar, FaUsers, FaClock, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaSave, FaTimes, FaCrown, FaStar, FaUsers } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
 const ROLE_LIMITS = {
@@ -48,34 +48,65 @@ export default function FantasyTeamForm() {
     }
   }, [contest]);
 
-  const normalizeRole = (role) => role?.toLowerCase().includes('allrounder') ? 'Allrounder' : role;
+  const normalizeRole = (role) => {
+    debugger
+        console.log("",role)
+    if (!role) return role;
+    const r = role.toLowerCase();
+    if (r.includes('allround')) return 'Allrounder';
+    if (r.includes('wicket')) return 'Wicketkeeper';
+  if (r.includes('batter') || (r.includes('bat') && !r.includes('allround'))) return 'Batsman';
+    if (r.includes('bowl') && !r.includes('allround')) return 'Bowler';
+    // fallback: capitalize first letter
+    return role.charAt(0).toUpperCase() + role.slice(1);
+  };
 
   const getPlayersByRole = (role) => {
+    debugger
+    if (!role) return [];
     if (role === 'Allrounder') {
-      return allPlayers.filter(p => p.role?.toLowerCase().includes('allrounder') || p.role?.toLowerCase().includes('bowling allrounder') || p.role?.toLowerCase().includes('batting allrounder'));
+      return allPlayers.filter(p => {
+        const pr = (p.role || '').toLowerCase();
+        return pr.includes('allround') || pr.includes('bowling allrounder') || pr.includes('batting allrounder');
+      });
     }
-    return allPlayers.filter(p => p.role?.toLowerCase().includes(role.toLowerCase()));
+
+     if (role === 'Batsman') {
+      return allPlayers.filter(p => {
+        const pr = (p.role || '').toLowerCase();
+        return pr.includes('batsman') || pr.includes('batter') ;
+      });
+    }
+    
+    return allPlayers.filter(p => (p.role || '').toLowerCase().includes(role.toLowerCase()));
   };
 
   const isSelected = (playerId) => selectedPlayers.some(p => p.playerId === playerId);
 
-  const getRoleCounts = () => selectedPlayers.reduce((acc, p) => {
+  const getRoleCounts = (list = selectedPlayers) => list.reduce((acc, p) => {
     const r = normalizeRole(p.role);
     acc[r] = (acc[r] || 0) + 1;
     return acc;
   }, {});
 
-  const getTotalCredits = () => selectedPlayers.reduce((sum, p) => sum + (p.credits || 0), 0);
+  const getTotalCredits = (list = selectedPlayers) => list.reduce((sum, p) => sum + (p.credits || 0), 0);
 
   const toggleSelect = (player) => {
+    debugger
     if (isSelected(player.playerId)) {
-      setSelectedPlayers(prev => prev.filter(p => p.playerId !== player.playerId));
-      if (captain === player.playerId) setCaptain(null);
-      if (viceCaptain === player.playerId) setViceCaptain(null);
+      // remove
+      setSelectedPlayers(prev => {
+        const next = prev.filter(p => p.playerId !== player.playerId);
+        // clear captain/vice if removed
+        if (captain === player.playerId) setCaptain(null);
+        if (viceCaptain === player.playerId) setViceCaptain(null);
+        return next;
+      });
       return;
     }
 
-    if (selectedPlayers.length >= MAX_PLAYERS) return alert('Maximum 11 players allowed.');
+    // add
+    if (selectedPlayers.length >= MAX_PLAYERS) return alert(`Maximum ${MAX_PLAYERS} players allowed.`);
     const r = normalizeRole(player.role);
     if (!ROLE_LIMITS[r]) return alert(`Unknown role: ${player.role}`);
     const roleCounts = getRoleCounts();
@@ -86,9 +117,12 @@ export default function FantasyTeamForm() {
   };
 
   const removePlayer = (playerId) => {
-    setSelectedPlayers(prev => prev.filter(p => p.playerId !== playerId));
-    if (captain === playerId) setCaptain(null);
-    if (viceCaptain === playerId) setViceCaptain(null);
+    setSelectedPlayers(prev => {
+      const next = prev.filter(p => p.playerId !== playerId);
+      if (captain === playerId) setCaptain(null);
+      if (viceCaptain === playerId) setViceCaptain(null);
+      return next;
+    });
   };
 
   const selectCaptain = (playerId) => {
@@ -106,20 +140,20 @@ export default function FantasyTeamForm() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     const roleCounts = getRoleCounts();
-    if (selectedPlayers.length !== MAX_PLAYERS) return alert('Select exactly 11 players.');
+    if (selectedPlayers.length !== MAX_PLAYERS) return alert(`Select exactly ${MAX_PLAYERS} players.`);
     if (Object.keys(ROLE_LIMITS).some(role => (roleCounts[role] || 0) < ROLE_LIMITS[role].min)) return alert('Minimum role requirements not met.');
     if (!captain || !viceCaptain) return alert('Select Captain and Vice-Captain.');
 
     const dto = {
-      ContestId: parseInt(contestId),
+      ContestId: parseInt(contestId, 10),
       CaptainId: captain,
       ViceCaptainId: viceCaptain,
       PlayerIds: selectedPlayers.map(p => p.playerId),
     };
 
-    try {
+   try {
       await fantasyTeamService.addFantasyTeam(dto);
       navigate('/fantasy-teams');
     } catch (err) {
@@ -157,7 +191,6 @@ export default function FantasyTeamForm() {
     );
   };
 
-  // Combined team visual: overlapping badges
   const TeamCombined = ({ leftImg, rightImg }) => (
     <div className="flex items-center gap-3">
       <div className="relative w-20 h-12">
@@ -175,6 +208,7 @@ export default function FantasyTeamForm() {
         onClick={() => toggleSelect(player)}
         className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-shadow text-left ${selected ? 'bg-green-50 border-green-300 shadow' : 'bg-white hover:shadow-md'}`}
         aria-pressed={selected}
+        type="button"
       >
         <img src={player.imagePath || 'https://via.placeholder.com/64?text=P'} alt={player.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
         <div className="flex-1 min-w-0">
@@ -191,22 +225,16 @@ export default function FantasyTeamForm() {
     );
   };
 
-  // Updated Selected Player row: fixes overlapping by separating actions into a fixed area
-  // Added `showCredits` prop so we can hide per-player credits on small/mobile views
-  // Updated Selected Player row: fixes overlapping by separating actions into a fixed area
-  // Added `showCredits` and `showTeam` props so we can hide per-player credits and team on small/mobile views
+  // Selected player row: full-width so it won't overlap inside vertical container
   const SelectedPlayerRow = ({ player, showCredits = true, showTeam = true }) => (
-    // fixed-height on mobile (h-14) and auto height on md+ screens (md:h-auto)
-    <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg border h-14 md:h-auto min-w-0 overflow-hidden">
+    <div className="w-full flex items-center gap-3 p-2 bg-gray-50 rounded-lg border min-w-0 overflow-hidden">
       <img src={player.imagePath || 'https://via.placeholder.com/48?text=P'} alt={player.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
 
-      {/* Name & role - single-line truncation so long names won't break layout */}
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm leading-tight text-gray-900 truncate whitespace-nowrap">{player.name}</p>
         <p className="text-xs text-gray-500 truncate whitespace-nowrap">{player.role}{showTeam ? ` • ${player.team}` : ''}</p>
       </div>
 
-      {/* Actions & optional credits kept in a fixed column to the right */}
       <div className="flex flex-col items-end gap-2 flex-shrink-0">
         {showCredits && <div className="text-sm font-semibold">{player.credits || 0} Cr</div>}
         <div className="flex items-center gap-2">
@@ -223,7 +251,6 @@ export default function FantasyTeamForm() {
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-2xl shadow-md overflow-hidden">
 
-          {/* Header with combined team image */}
           <div className="p-4 md:p-6 border-b">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -247,13 +274,10 @@ export default function FantasyTeamForm() {
             </div>
           </div>
 
-          {/* Body */}
           <form onSubmit={handleSubmit} className="p-4 md:p-6">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
-              {/* Main: tabs + players */}
               <div className="lg:col-span-3">
-                {/* Role tabs (scrollable on small screens) */}
                 <div className="mb-4">
                   <div className="flex gap-2 overflow-x-auto pb-2">
                     {Object.keys(ROLE_LIMITS).map(role => (
@@ -264,7 +288,6 @@ export default function FantasyTeamForm() {
                   </div>
                 </div>
 
-                {/* Role summary */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                   {Object.keys(ROLE_LIMITS).map(r => {
                     const { selected, left } = getRemaining(r);
@@ -281,7 +304,6 @@ export default function FantasyTeamForm() {
                   })}
                 </div>
 
-                {/* Players grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {getPlayersByRole(activeTab).length ? (
                     getPlayersByRole(activeTab).map(p => <PlayerCard key={p.playerId} player={p} />)
@@ -290,7 +312,6 @@ export default function FantasyTeamForm() {
                   )}
                 </div>
 
-                {/* Mobile selected strip (horizontal) */}
                 <div className="mt-4 md:hidden">
                   <div className="flex items-center justify-between mb-2">
                     <div className="text-sm font-semibold">Selected ({selectedPlayers.length})</div>
@@ -298,8 +319,7 @@ export default function FantasyTeamForm() {
                   </div>
                   <div className="flex gap-2 overflow-x-auto pb-2">
                     {selectedPlayers.length ? selectedPlayers.map(p => (
-                      <div key={p.playerId} className="flex-shrink-0 w-48 h-14 md:h-auto">
-                        {/* hide per-player credits on mobile by passing showCredits={false} */}
+                      <div key={p.playerId} className="flex-shrink-0 w-48">
                         <SelectedPlayerRow player={p} showCredits={false} showTeam={false} />
                       </div>
                     )) : <div className="text-gray-500">No players selected yet.</div>}
@@ -308,7 +328,6 @@ export default function FantasyTeamForm() {
 
               </div>
 
-              {/* Sidebar: selected players & leadership (desktop) */}
               <aside className="lg:col-span-1 hidden md:block">
                 <div className="sticky top-6 space-y-4">
                   <div className="bg-yellow-50 p-3 rounded-lg border">
@@ -326,9 +345,11 @@ export default function FantasyTeamForm() {
 
                   <div className="bg-white p-3 rounded-lg border">
                     <h4 className="font-semibold mb-3">Selected Players</h4>
-                    <div className="flex flex-col gap-2 max-h-72 overflow-auto pr-2">
+                    <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-2 w-full">
                       {selectedPlayers.length ? selectedPlayers.map(p => (
-                        <SelectedPlayerRow key={p.playerId} player={p} />
+                        <div key={p.playerId} className="w-full">
+                          <SelectedPlayerRow player={p} />
+                        </div>
                       )) : (
                         <div className="text-gray-500">No players selected yet.</div>
                       )}
@@ -344,7 +365,7 @@ export default function FantasyTeamForm() {
                   </div>
 
                   <div className="flex gap-3">
-                    <button type="submit" onClick={handleSubmit} className="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition"> <FaSave /> Save Team</button>
+                    <button type="submit" className="flex-1 inline-flex items-center justify-center gap-2 py-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition"> <FaSave /> Save Team</button>
                     <Link to={`/contests/${contestId}`} className="inline-flex items-center gap-2 py-2 px-4 rounded-full bg-gray-100 hover:bg-gray-200"> <FaTimes /> Cancel</Link>
                   </div>
 
@@ -353,7 +374,6 @@ export default function FantasyTeamForm() {
 
             </div>
 
-            {/* Mobile bottom bar */}
             <div className=" md:hidden bg-white border-t p-3 safe-area-inset-bottom">
               <div className="max-w-6xl mx-auto flex gap-3">
                 <button type="button" onClick={handleSubmit} className="flex-1 py-3 rounded-full bg-indigo-600 text-white flex items-center justify-center gap-2"> <FaSave /> Save</button>

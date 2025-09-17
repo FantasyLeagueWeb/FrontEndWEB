@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import contestService from '../../services/contestService';
+import paymentService from '../../services/paymentService';
 import { FaEdit } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { AuthContext } from '../../contexts/AuthContext';
@@ -13,6 +14,7 @@ const ContestDetail = () => {
   const [error, setError] = useState(null);
   const { user } = useContext(AuthContext);
   const isAdmin = user?.role === 'Admin';
+  const [showInsufficientBalance, setShowInsufficientBalance] = useState(false);
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -30,9 +32,30 @@ const ContestDetail = () => {
     fetchContest();
   }, [id]);
 
-  const handleCreateFantasyTeam = () => {
-    console.log('Navigating with contest data:', contest); // Debug log
-    navigate(`/fantasy-teams/create/${id}`, { state: { contest } });
+  const handleCreateFantasyTeam = async () => {
+    try {
+      const data = await paymentService.getBalance();
+      const balance = data; // Assuming the response has a 'balance' field
+      console.log('User balance:', balance); // Debug log
+      if (balance < contest.entryFee) {
+        setShowInsufficientBalance(true);
+      } else {
+        console.log('Navigating with contest data:', contest); // Debug log
+        navigate(`/fantasy-teams/create/${id}`, { state: { contest } });
+      }
+    } catch (error) {
+      console.error('Failed to fetch balance', error);
+      // Optionally handle error, e.g., show a message
+    }
+  };
+
+  const handleRecharge = () => {
+    setShowInsufficientBalance(false);
+    navigate('/payments/add'); // Assuming the payment form screen route is '/recharge'; adjust if needed
+  };
+
+  const handleCloseModal = () => {
+    setShowInsufficientBalance(false);
   };
 
   if (loading) {
@@ -194,30 +217,54 @@ const ContestDetail = () => {
           </motion.div>
         </div>
 
-     <div className="flex justify-center mt-6 space-x-6">
-  {user?.role?.toLowerCase() === 'admin' && (
-    <Link
-      to={`/contests/edit/${id}`}
-      className="bg-indigo-600 text-white px-6 py-2 rounded-full hover:bg-indigo-700 transition-colors duration-200 flex items-center transform hover:scale-105"
-    >
-      <FaEdit className="mr-2" />
-      Edit Contest
-    </Link>
-  )}
-  <button
-    onClick={handleCreateFantasyTeam}
-    className="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition-colors duration-200 flex items-center transform hover:scale-105"
-  >
-    Create Fantasy Team
-  </button>
-</div>
-
+        <div className="flex justify-center mt-6 space-x-6">
+          {user?.role?.toLowerCase() === 'admin' && (
+            <Link
+              to={`/contests/edit/${id}`}
+              className="bg-indigo-600 text-white px-6 py-2 rounded-full hover:bg-indigo-700 transition-colors duration-200 flex items-center transform hover:scale-105"
+            >
+              <FaEdit className="mr-2" />
+              Edit Contest
+            </Link>
+          )}
+          <button
+            onClick={handleCreateFantasyTeam}
+            className="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition-colors duration-200 flex items-center transform hover:scale-105"
+          >
+            Create Fantasy Team
+          </button>
+        </div>
       </div>
+
+      {showInsufficientBalance && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white p-8 rounded-lg shadow-xl max-w-sm w-full"
+          >
+            <h3 className="text-xl font-semibold mb-4 text-red-600">Insufficient Balance</h3>
+            <p className="text-gray-700 mb-6">You don't have sufficient balance. Please recharge.</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={handleCloseModal}
+                className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={handleRecharge}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+              >
+                Recharge
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </motion.div>
   );
 };
 
 export default ContestDetail;
-
-
-
