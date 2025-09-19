@@ -81,12 +81,21 @@ const FantasyTeamDetail = () => {
       setLoading(false);
     }
   };
+useEffect(() => {
+  // Initial fetch
+  fetchTeam();
 
-  useEffect(() => {
+  // Hide sidebar on small screens
+  if (window.innerWidth < 1024) setShowSidebar(false);
+
+  // Set interval to auto-refresh every 30 seconds
+  const intervalId = setInterval(() => {
     fetchTeam();
-    // hide sidebar on small screens by default
-    if (window.innerWidth < 1024) setShowSidebar(false);
-  }, [id]);
+  }, 30000); // 30 seconds
+
+  // Cleanup interval on component unmount or id change
+  return () => clearInterval(intervalId);
+}, [id]);
 
   if (!team) {
     return (
