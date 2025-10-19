@@ -85,7 +85,7 @@ const App = () => {
               <Route path="/fantasy-teams/edit/:id" element={<FantasyTeamForm />} />
               <Route path="/fantasy-teams/create/:contestId" element={<FantasyTeamForm />} /> {/* New route */}
               <Route path="/payments" element={<PaymentList />} />
-              <Route path="/payments/:id" element={<PaymentDetail />} />
+              <Route path="/payments/:id" element={<PaymentDetail />} /> 
               <Route path="/payments/add" element={<PaymentForm />} />
               <Route path="/payment-requests" element={<PaymentRequestList />} />
               <Route path="/payment-requests/:id" element={<PaymentRequestDetail />} />
