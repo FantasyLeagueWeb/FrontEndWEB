@@ -2,12 +2,14 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { ToastProvider } from './components/Shared/Toast';
 import Header from './components/Shared/Header';
 import Footer from './components/Shared/Footer';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
+import ForgotPassword from './components/Auth/ForgotPassword';
 import LeagueList from './components/League/LeagueList';
 import LeagueDetail from './components/League/LeagueDetail';
 import LeagueForm from './components/League/LeagueForm';
@@ -23,6 +25,7 @@ import MatchForm from './components/Match/MatchForm';
 import ContestList from './components/Contest/ContestList';
 import ContestDetail from './components/Contest/ContestDetail';
 import ContestForm from './components/Contest/ContestForm';
+import ContestWinners from './components/Contest/ContestWinners';
 import FantasyTeamList from './components/FantasyTeam/FantasyTeamList';
 import FantasyTeamDetail from './components/FantasyTeam/FantasyTeamDetail';
 import FantasyTeamForm from './components/FantasyTeam/FantasyTeamForm';
@@ -32,6 +35,8 @@ import PaymentForm from './components/Payment/PaymentForm';
 import PaymentRequestList from './components/PaymentRequest/PaymentRequestList';
 import PaymentRequestDetail from './components/PaymentRequest/PaymentRequestDetail';
 import PaymentRequestForm from './components/PaymentRequest/PaymentRequestForm';
+import WithdrawalManagement from './components/Withdrawal/WithdrawalManagement';
+import WithdrawalHistory from './components/Withdrawal/WithdrawalHistory';
 import UserList from './components/User/UserList';
 import UserDetail from './components/User/UserDetail';
 import UserForm from './components/User/UserForm';
@@ -40,8 +45,9 @@ import IdealQ from './components/Shared/ideal';
 
 const App = () => {
   return (
-    <AuthProvider>
-      <Router>
+    <ToastProvider>
+      <AuthProvider>
+        <Router>
         <Header />
         <main className="min-h-screen">
           <div className="container mx-auto p-4">
@@ -49,6 +55,7 @@ const App = () => {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/leagues" element={<LeagueList />} />
               <Route path="/leagues/:id" element={<LeagueDetail />} />
@@ -69,6 +76,7 @@ const App = () => {
               <Route path="/matches/edit/:id" element={<MatchForm />} />
               <Route path="/contests" element={<ContestList />} />
               <Route path="/contests/:id" element={<ContestDetail />} />
+              <Route path="/contests/:contestId/winners" element={<ContestWinners />} />
               <Route path="/contests/add" element={<ContestForm />} />
               <Route path="/contests/edit/:id" element={<ContestForm />} />
               <Route path="/fantasy-teams" element={<FantasyTeamList />} />
@@ -82,6 +90,8 @@ const App = () => {
               <Route path="/payment-requests" element={<PaymentRequestList />} />
               <Route path="/payment-requests/:id" element={<PaymentRequestDetail />} />
               <Route path="/payment-requests/add" element={<PaymentRequestForm />} />
+              <Route path="/withdrawals" element={<WithdrawalHistory />} />
+              <Route path="/admin/withdrawals" element={<WithdrawalManagement />} />
               <Route path="/users" element={<UserList />} />
               <Route path="/users/:id" element={<UserDetail />} />
               <Route path="/users/add" element={<UserForm />} />
@@ -93,6 +103,7 @@ const App = () => {
         <Footer />
       </Router>
     </AuthProvider>
+    </ToastProvider>
   );
 };
 
