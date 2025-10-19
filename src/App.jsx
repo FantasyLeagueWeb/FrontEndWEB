@@ -79,7 +79,7 @@ const App = () => {
               <Route path="/contests/:contestId/winners" element={<ContestWinners />} />
               <Route path="/contests/add" element={<ContestForm />} />
               <Route path="/contests/edit/:id" element={<ContestForm />} />
-              <Route path="/fantasy-teams" element={<FantasyTeamList />} />
+              <Route path="/fantasy-teams" element={<FantasyTeamList />} /> 
               <Route path="/fantasy-teams/:id" element={<FantasyTeamDetail />} />
               <Route path="/fantasy-teams/add" element={<FantasyTeamForm />} />
               <Route path="/fantasy-teams/edit/:id" element={<FantasyTeamForm />} />
