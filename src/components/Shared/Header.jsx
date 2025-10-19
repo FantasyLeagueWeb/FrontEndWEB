@@ -66,6 +66,7 @@ const Header = () => {
                   {/* <NavItem to="/payments" label="Payments" /> */}
                   <NavItem to="/payment-requests" label="Payment Requests" />
                   <NavItem to="/users" label="Users" />
+                  <NavItem to="/admin/withdrawals" label="Withdrawal Management" />
                 </>
               ) : (
                 <>
@@ -73,10 +74,11 @@ const Header = () => {
                   <NavItem to="/contests" label="Contests" />
                   <NavItem to="/fantasy-teams" label="Fantasy Teams" />
                   <NavItem to="/payments" label="Payments" />
+                <NavItem to="/withdrawals" label="Withdrawal History" />
 
                 <div className="hidden md:flex items-center space-x-1 text-gray-800 font-medium">
               <span className="text-yellow-500">🪙</span>
-              <span>{balance.toFixed(2)}</span>
+              <span>Rs {balance.toFixed(2)}</span>
             </div>
 
                 </>
@@ -175,6 +177,7 @@ const Header = () => {
                 <NavItem to="/contests" label="Contests" mobile />
                 {/* <NavItem to="/payments" label="Payments" mobile /> */}
                 <NavItem to="/payment-requests" label="Payment Requests" mobile />
+                <NavItem to="/admin/withdrawals" label="Withdrawal Management" mobile />
                 <NavItem to="/users" label="Users" mobile />
               </>
             ) : (
@@ -182,12 +185,13 @@ const Header = () => {
               <>
                <div className="flex items-center space-x-1 text-gray-800 font-medium py-2">
               <span className="text-yellow-500">🪙</span>
-              <span>{balance.toFixed(2)}</span>
+              <span>Rs {balance.toFixed(2)}</span>
             </div>
                 {/* <NavItem to="/matches" label="Matches" mobile /> */}
                 <NavItem to="/contests" label="Contests" mobile />
                 <NavItem to="/fantasy-teams" label="Fantasy Teams" mobile />
                 <NavItem to="/payments" label="Payments" mobile />
+                <NavItem to="/withdrawals" label="Withdrawal History" mobile />
               </>
             )
           ) : (

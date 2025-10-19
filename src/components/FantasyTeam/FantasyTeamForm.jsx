@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import fantasyTeamService from '../../services/fantasyTeamService';
 import { FaSave, FaTimes, FaCrown, FaStar, FaUsers } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { useToast } from '../Shared/Toast';
+import { AuthContext } from '../../contexts/AuthContext';
 
 const ROLE_LIMITS = {
   Wicketkeeper: { min: 1, max: 8 },
@@ -17,6 +19,8 @@ export default function FantasyTeamForm() {
   const { contestId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { success, error: showError } = useToast();
+  const { refreshUser } = useContext(AuthContext);
   const [contest, setContest] = useState(location.state?.contest || null);
   const [allPlayers, setAllPlayers] = useState([]);
   const [selectedPlayers, setSelectedPlayers] = useState([]);
@@ -106,12 +110,27 @@ export default function FantasyTeamForm() {
     }
 
     // add
-    if (selectedPlayers.length >= MAX_PLAYERS) return alert(`Maximum ${MAX_PLAYERS} players allowed.`);
+    if (selectedPlayers.length >= MAX_PLAYERS) {
+      showError('Maximum Players Reached', `You can only select a maximum of ${MAX_PLAYERS} players. Please remove a player before adding another.`);
+      return;
+    }
     const r = normalizeRole(player.role);
-    if (!ROLE_LIMITS[r]) return alert(`Unknown role: ${player.role}`);
+    if (!ROLE_LIMITS[r]) {
+      showError('Invalid Player Role', `Unknown role: ${player.role}. Please try refreshing the page.`);
+      return;
+    }
     const roleCounts = getRoleCounts();
-    if ((roleCounts[r] || 0) >= ROLE_LIMITS[r].max) return alert(`Maximum ${ROLE_LIMITS[r].max} ${r}s allowed.`);
-    if (getTotalCredits() + (player.credits || 0) > MAX_CREDITS) return alert('Credits limit exceeded.');
+    if ((roleCounts[r] || 0) >= ROLE_LIMITS[r].max) {
+      showError('Role Limit Exceeded', `You can only select a maximum of ${ROLE_LIMITS[r].max} ${r}s. Please remove a ${r} before adding another.`);
+      return;
+    }
+    if (getTotalCredits() + (player.credits || 0) > MAX_CREDITS) {
+      const currentCredits = getTotalCredits();
+      const playerCredits = player.credits || 0;
+      const remainingCredits = MAX_CREDITS - currentCredits;
+      showError('Credits Limit Exceeded', `You have exceeded the credit limit of ${MAX_CREDITS}. Current credits: ${currentCredits}, Player cost: ${playerCredits}. You can only spend ${remainingCredits} more credits.`);
+      return;
+    }
 
     setSelectedPlayers(prev => [...prev, player]);
   };
@@ -125,13 +144,29 @@ export default function FantasyTeamForm() {
     });
   };
 
-  const selectCaptain = (playerId) => {
-    if (viceCaptain === playerId) return alert('Cannot select same player as Vice-Captain.');
-    setCaptain(playerId);
+  const selectCaptain = (playerId, event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (viceCaptain === playerId) {
+      showError('Captain Selection Error', 'Cannot select the same player as both Captain and Vice-Captain. Please choose a different player for Captain.');
+      return;
+    }
+    // Toggle captain selection - if already captain, deselect
+    setCaptain(captain === playerId ? null : playerId);
   };
-  const selectViceCaptain = (playerId) => {
-    if (captain === playerId) return alert('Cannot select same player as Captain.');
-    setViceCaptain(playerId);
+  const selectViceCaptain = (playerId, event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (captain === playerId) {
+      showError('Vice-Captain Selection Error', 'Cannot select the same player as both Captain and Vice-Captain. Please choose a different player for Vice-Captain.');
+      return;
+    }
+    // Toggle vice-captain selection - if already vice-captain, deselect
+    setViceCaptain(viceCaptain === playerId ? null : playerId);
   };
 
   const getRemaining = (role) => {
@@ -142,9 +177,24 @@ export default function FantasyTeamForm() {
   const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     const roleCounts = getRoleCounts();
-    if (selectedPlayers.length !== MAX_PLAYERS) return alert(`Select exactly ${MAX_PLAYERS} players.`);
-    if (Object.keys(ROLE_LIMITS).some(role => (roleCounts[role] || 0) < ROLE_LIMITS[role].min)) return alert('Minimum role requirements not met.');
-    if (!captain || !viceCaptain) return alert('Select Captain and Vice-Captain.');
+    
+    // Validation with better UI feedback
+    if (selectedPlayers.length !== MAX_PLAYERS) {
+      showError('Team Selection Incomplete', `Please select exactly ${MAX_PLAYERS} players. You currently have ${selectedPlayers.length} players selected.`);
+      return;
+    }
+    
+    const missingRoles = Object.keys(ROLE_LIMITS).filter(role => (roleCounts[role] || 0) < ROLE_LIMITS[role].min);
+    if (missingRoles.length > 0) {
+      const roleNames = missingRoles.map(role => `${role} (minimum ${ROLE_LIMITS[role].min})`).join(', ');
+      showError('Role Requirements Not Met', `Please select the minimum required players for: ${roleNames}`);
+      return;
+    }
+    
+    if (!captain || !viceCaptain) {
+      showError('Captain & Vice-Captain Required', 'Please select both a Captain and Vice-Captain for your fantasy team.');
+      return;
+    }
 
     const dto = {
       ContestId: parseInt(contestId, 10),
@@ -155,10 +205,13 @@ export default function FantasyTeamForm() {
 
    try {
       await fantasyTeamService.addFantasyTeam(dto);
+      success('Fantasy Team Created!', 'Your fantasy team has been created successfully.');
+      // Refresh user data to update balance in navbar
+      await refreshUser();
       navigate('/fantasy-teams');
     } catch (err) {
       console.error('Failed to save team', err);
-      alert('Failed to create fantasy team.');
+      showError('Fantasy Team Creation Failed', err.message || 'Failed to create fantasy team. Please try again.');
     }
   };
 
@@ -238,9 +291,9 @@ export default function FantasyTeamForm() {
       <div className="flex flex-col items-end gap-2 flex-shrink-0">
         {showCredits && <div className="text-sm font-semibold">{player.credits || 0} Cr</div>}
         <div className="flex items-center gap-2">
-          <button onClick={() => selectCaptain(player.playerId)} aria-label={`Make ${player.name} Captain`} className={`w-8 h-8 flex items-center justify-center rounded-full ${captain === player.playerId ? 'bg-yellow-500 text-white' : 'bg-gray-200'} hover:bg-yellow-400`} title="Captain"><FaCrown size={14} /></button>
-          <button onClick={() => selectViceCaptain(player.playerId)} aria-label={`Make ${player.name} Vice-Captain`} className={`w-8 h-8 flex items-center justify-center rounded-full ${viceCaptain === player.playerId ? 'bg-blue-500 text-white' : 'bg-gray-200'} hover:bg-blue-400`} title="Vice-Captain"><FaStar size={14} /></button>
-          <button onClick={() => removePlayer(player.playerId)} aria-label={`Remove ${player.name}`} className="w-8 h-8 flex items-center justify-center rounded-full bg-red-100 text-red-600 hover:bg-red-200"><FaTimes size={14} /></button>
+          <button type="button" onClick={(e) => selectCaptain(player.playerId, e)} aria-label={`Make ${player.name} Captain`} className={`w-8 h-8 flex items-center justify-center rounded-full ${captain === player.playerId ? 'bg-yellow-500 text-white' : 'bg-gray-200'} hover:bg-yellow-400`} title="Captain"><FaCrown size={14} /></button>
+          <button type="button" onClick={(e) => selectViceCaptain(player.playerId, e)} aria-label={`Make ${player.name} Vice-Captain`} className={`w-8 h-8 flex items-center justify-center rounded-full ${viceCaptain === player.playerId ? 'bg-blue-500 text-white' : 'bg-gray-200'} hover:bg-blue-400`} title="Vice-Captain"><FaStar size={14} /></button>
+          <button type="button" onClick={() => removePlayer(player.playerId)} aria-label={`Remove ${player.name}`} className="w-8 h-8 flex items-center justify-center rounded-full bg-red-100 text-red-600 hover:bg-red-200"><FaTimes size={14} /></button>
         </div>
       </div>
     </div>

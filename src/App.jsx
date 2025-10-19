@@ -92,7 +92,7 @@ const App = () => {
               <Route path="/payment-requests/add" element={<PaymentRequestForm />} />
               <Route path="/withdrawals" element={<WithdrawalHistory />} />
               <Route path="/admin/withdrawals" element={<WithdrawalManagement />} />
-              <Route path="/users" element={<UserList />} />
+              <Route path="/users" element={<UserList />} /> 
               <Route path="/users/:id" element={<UserDetail />} />
               <Route path="/users/add" element={<UserForm />} />
               <Route path="/users/edit/:id" element={<UserForm />} />

@@ -63,9 +63,9 @@ export default function PaymentRequestList() {
 
   const currency = (val) => {
     try {
-      return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(val);
+      return new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(val);
     } catch {
-      return `$${val}`;
+      return `Rs ${val}`;
     }
   };
 

@@ -6,11 +6,13 @@ import matchService from '../../services/matchService';
 import { FaSave, FaTimes } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useToast } from '../Shared/Toast';
 
 const ContestForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { success, error } = useToast();
   const [contest, setContest] = useState({
     name: '',
     matchId: '',
@@ -168,13 +170,16 @@ const ContestForm = () => {
 
       if (id) {
         await contestService.updateContest(postData);
+        success('Contest Updated!', 'Contest has been updated successfully.');
       } else {
         await contestService.addContest(postData);
+        success('Contest Created!', 'New contest has been created successfully.');
       }
 
       navigate('/contests');
-    } catch (error) {
-      console.error('Failed to save contest', error);
+    } catch (err) {
+      console.error('Failed to save contest', err);
+      error('Contest Save Failed', err.message || 'Failed to save contest. Please try again.');
     }
   };
 
@@ -215,7 +220,7 @@ const ContestForm = () => {
                 required
               />
             </div>
-            <div>
+            {/* <div>
               <label className="block text-gray-700 font-medium mb-1" htmlFor="firstPrizeWinners">First Prize Winners</label>
               <input
                 type="number"
@@ -253,7 +258,7 @@ const ContestForm = () => {
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 required
               />
-            </div>
+            </div> */}
             <div>
               <label className="block text-gray-700 font-medium mb-1" htmlFor="firstPrizeAmount">First Prize Amount</label>
               <input

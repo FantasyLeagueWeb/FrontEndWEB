@@ -1,22 +1,25 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { FaSignInAlt, FaUser, FaLock } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { useToast } from '../Shared/Toast';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { success, error } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await login(username, password);
+      success('Login Successful!', 'Welcome back!');
       navigate('/');
-    } catch (error) {
-      alert('Login failed');
+    } catch (err) {
+      error('Login Failed', err.message || 'Invalid credentials. Please try again.');
     }
   };
 
@@ -60,6 +63,15 @@ const Login = () => {
           >
             <FaSignInAlt className="mr-2" /> Login
           </button>
+          
+          <div className="mt-4 text-center">
+            <Link 
+              to="/forgot-password" 
+              className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+            >
+              Forgot Password?
+            </Link>
+          </div>
         </div>
       </motion.div>
     </div>

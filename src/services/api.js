@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL, // Uses environment variable
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5209/api', // Uses environment variable or fallback
 });
 
 api.interceptors.request.use(

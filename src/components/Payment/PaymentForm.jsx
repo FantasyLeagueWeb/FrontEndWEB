@@ -6,9 +6,11 @@ import paymentService from '../../services/paymentService';
 import { FaSave, FaTimes, FaUpload } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useToast } from '../Shared/Toast';
 
 const PaymentForm = () => {
   const navigate = useNavigate();
+  const { success, error } = useToast();
   const [userEnteredAmount, setUserEnteredAmount] = useState('');
   const [proof, setProof] = useState(null);
 
@@ -18,15 +20,20 @@ const PaymentForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!proof) return alert('Please upload proof image.');
+    if (!proof) {
+      error('Proof Required', 'Please upload proof image.');
+      return;
+    }
     const formData = new FormData();
     formData.append('userEnteredAmount', userEnteredAmount);
     formData.append('proof', proof);
     try {
       await paymentService.addPayment(formData);
+      success('Recharge Request Submitted!', 'Your balance recharge request has been submitted successfully. We will process it soon.');
       navigate('/payments');
-    } catch (error) {
-      console.error('Failed to save recharge', error);
+    } catch (err) {
+      console.error('Failed to save recharge', err);
+      error('Recharge Request Failed', err.message || 'Failed to submit recharge request. Please try again.');
     }
   };
 

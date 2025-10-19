@@ -113,6 +113,17 @@ const ContestDetail = () => {
           <p className="text-gray-700 text-lg">
             <strong>Venue:</strong> {contest.venue || 'N/A'}
           </p>
+          <p className="text-gray-700 text-lg">
+            <strong>Status:</strong>{' '}
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+              contest.contestStatus === 'Finished' ? 'bg-green-50 text-green-700' :
+              contest.contestStatus === 'Live' ? 'bg-red-50 text-red-700' :
+              contest.contestStatus === 'Upcoming' ? 'bg-blue-50 text-blue-700' :
+              'bg-gray-50 text-gray-700'
+            }`}>
+              {contest.contestStatus || 'N/A'}
+            </span>
+          </p>
         </div>
 
         <div className="mb-8 bg-gray-50 p-6 rounded-lg shadow">
@@ -227,6 +238,16 @@ const ContestDetail = () => {
               Edit Contest
             </Link>
           )}
+          
+          {contest.contestStatus === 'Finished' && (
+            <Link
+              to={`/contests/${id}/winners`}
+              className="bg-yellow-600 text-white px-6 py-2 rounded-full hover:bg-yellow-700 transition-colors duration-200 flex items-center transform hover:scale-105"
+            >
+              🏆 View Contest Winners
+            </Link>
+          )}
+          
           <button
             onClick={handleCreateFantasyTeam}
             className="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition-colors duration-200 flex items-center transform hover:scale-105"

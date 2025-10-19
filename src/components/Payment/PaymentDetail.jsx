@@ -5,9 +5,11 @@ import { useParams } from 'react-router-dom';
 import paymentService from '../../services/paymentService';
 import { FaMoneyBill, FaImage } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { useToast } from '../Shared/Toast';
 
 const PaymentDetail = () => {
   const { id } = useParams();
+  const { success, error } = useToast();
   const [payment, setPayment] = useState(null);
   const [base64, setBase64] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -54,8 +56,8 @@ const PaymentDetail = () => {
           <FaMoneyBill className="w-12 h-12 text-indigo-600 mr-4" />
           <h2 className="text-3xl font-bold text-gray-900">Recharge Request #{payment.userAmountRecahargeId}</h2>
         </div>
-        <p className="text-gray-700 text-lg mb-2"><strong>User Entered Amount:</strong> ${payment.userEnteredAmount}</p>
-        {payment.adminApprovedAmount && <p className="text-gray-700 text-lg mb-2"><strong>Approved Amount:</strong> ${payment.adminApprovedAmount}</p>}
+        <p className="text-gray-700 text-lg mb-2"><strong>User Entered Amount:</strong> Rs {payment.userEnteredAmount}</p>
+        {payment.adminApprovedAmount && <p className="text-gray-700 text-lg mb-2"><strong>Approved Amount:</strong> Rs {payment.adminApprovedAmount}</p>}
         <p className="text-gray-700 text-lg mb-2"><strong>Status:</strong> {payment.status}</p>
         <p className="text-gray-700 text-lg mb-2"><strong>Created At:</strong> {new Date(payment.createdAt).toLocaleString()}</p>
         {payment.urlProof && (

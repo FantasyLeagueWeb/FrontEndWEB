@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import fantasyTeamService from '../../services/fantasyTeamService';
 import { FaEdit, FaCrown, FaStar, FaSync, FaTrophy } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import WinnerNotification from '../Withdrawal/WinnerNotification';
+import WithdrawalForm from '../Withdrawal/WithdrawalForm';
 
 // Enhanced UI for FantasyTeamDetail
 // - Responsive layout with a collapsible right stats panel on small screens
@@ -56,6 +58,7 @@ const FantasyTeamDetail = () => {
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
+  const [showWithdrawalForm, setShowWithdrawalForm] = useState(false);
 
   const formatDate = (date) => date ? new Date(date).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A';
 
@@ -123,6 +126,15 @@ useEffect(() => {
         {/* Main card */}
         <div className="lg:col-span-8 col-span-1">
           <div className="bg-white rounded-2xl shadow-2xl p-6 lg:p-8">
+            
+            {/* Winner Notification */}
+            {team.contestStatus === 'Finished' && (
+              <WinnerNotification
+                contestId={team.contestId}
+                fantasyTeamId={team.fantasyTeamId}
+                onWithdrawClick={() => setShowWithdrawalForm(true)}
+              />
+            )}
            
 
             {/* Match Info */}
@@ -218,52 +230,118 @@ useEffect(() => {
         </div>
 
         {/* Right sidebar: stats & leaderboard */}
-        <aside className={`lg:col-span-4 col-span-1 ${showSidebar ? '' : 'hidden lg:block'}`}>
-          <div className="bg-white rounded-2xl shadow p-5 sticky top-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <FaTrophy className="text-yellow-500" />
-                <h4 className="font-semibold">Leaderboard</h4>
-              </div>
-              <button onClick={() => setShowSidebar(s => !s)} className="text-xs text-gray-500 hidden lg:inline">Toggle</button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <StatBadge label="Total Points" value={team.fantasyTeamPoints || 0} />
-              <StatBadge label="Your Rank" value={team.userRank || '-'} />
-            </div>
-
-            <div className="max-h-72 overflow-y-auto">
-              {team.top5Rankings && team.top5Rankings.length > 0 ? (
-                <ul className="space-y-2">
-                  {team.top5Rankings.map((ranking, index) => (
-                    <li key={ranking.fantasyTeamId} className={`flex items-center justify-between p-3 rounded-lg border ${ranking.fantasyTeamId === team.fantasyTeamId ? 'bg-indigo-50 font-semibold' : 'bg-white'}`}>
-                      <div className="truncate">
-                        <div className={`text-sm ${rankColors[index] || 'text-gray-700'}`}>#{ranking.rank} {ranking.userName || `Fantacy Team ID ${ranking.fantasyTeamId}`}</div>
-                        <div className="text-xs text-gray-400 truncate">{ranking.userTag || ''}</div>
-                      </div>
-                      <div className="text-sm font-bold text-green-600">{ranking.points}</div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="text-gray-500 text-sm">No rankings available yet.</div>
-              )}
-            </div>
-
-            {!isUserInTop5 && team.userRank && (
-              <div className="mt-4 border-t pt-3">
-                <div className="text-xs text-gray-500">You</div>
-                <div className="flex items-center justify-between mt-1">
-                  <div className="font-medium text-indigo-700">#{team.userRank}</div>
-                  <div className="font-bold">{team.fantasyTeamPoints || 0}</div>
-                </div>
-              </div>
-            )}
-
-          </div>
-        </aside>
+<aside className={`lg:col-span-4 col-span-1 ${showSidebar ? '' : 'hidden lg:block'}`}>
+  <div className="bg-white rounded-2xl shadow p-5 sticky top-6">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center space-x-3">
+        <FaTrophy className="text-yellow-500" />
+        <h4 className="font-semibold">Leaderboard</h4>
       </div>
+      <button onClick={() => setShowSidebar(s => !s)} className="text-xs text-gray-500 hidden lg:inline">Toggle</button>
+    </div>
+
+    <div className="grid grid-cols-2 gap-3 mb-4">
+      <StatBadge label="Total Points" value={team.fantasyTeamPoints || 0} />
+      <StatBadge label="Your Rank" value={team.userRank || '-'} />
+    </div>
+
+    <div className="max-h-96 overflow-y-auto">
+      {team.top5Rankings && team.top5Rankings.filter(ranking => ranking.points > 0).length > 0 ? (
+        <ul className="space-y-2">
+          {team.top5Rankings
+            .filter(ranking => ranking.points > 0) // Filter out teams with zero points
+            .map((ranking, index) => {
+            // Define rank colors based on rank value
+            const rankColors = {
+              1: 'text-yellow-600', // Gold for rank 1
+              2: 'text-gray-400',   // Silver for rank 2
+              3: 'text-amber-600',  // Bronze for rank 3
+              default: 'text-gray-700', // Default for other ranks
+            };
+            const rankColor = rankColors[ranking.rank] || rankColors.default;
+
+            // Determine rank icon
+            const RankIcon = ranking.rank <= 3 ? (
+              <FaTrophy className={`inline-block w-4 h-4 ${rankColor}`} />
+            ) : (
+              <span className={`inline-block w-4 h-4 ${rankColor}`}>{ranking.rank}</span>
+            );
+
+            return (
+              <li
+                key={ranking.fantasyTeamId}
+                className={`flex items-center justify-between p-3 rounded-lg border ${
+                  ranking.fantasyTeamId === team.fantasyTeamId ? 'bg-indigo-50 font-semibold' : 'bg-white'
+                }`}
+              >
+                <div className="flex items-center space-x-2 truncate">
+                  <div className="flex items-center space-x-1">
+                    {RankIcon}
+                    <span className={`text-sm font-medium ${rankColor}`}>{ranking.rank}</span>
+                  </div>
+                  <div className="truncate">
+                    <div className={`text-sm ${rankColor}`}>
+                      {ranking.userName || `Fantasy Team ID ${ranking.fantasyTeamId}`}
+                    </div>
+                    <div className="text-xs text-gray-400 truncate">{ranking.userTag || ''}</div>
+                  </div>
+                </div>
+                <div className="text-sm font-bold text-green-600">{ranking.points}</div>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <div className="text-gray-500 text-sm">No rankings available yet.</div>
+      )}
+    </div>
+
+    {!team.top5Rankings?.some(r => r.fantasyTeamId === team.fantasyTeamId) && team.userRank && (
+      <div className="mt-4 border-t pt-3">
+        <div className="text-xs text-gray-500">You</div>
+        <div className="flex items-center justify-between mt-1">
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1">
+              {team.userRank <= 3 ? (
+                <FaTrophy
+                  className={`inline-block w-4 h-4 ${
+                    team.userRank === 1 ? 'text-yellow-600' : team.userRank === 2 ? 'text-gray-400' : 'text-amber-600'
+                  }`}
+                />
+              ) : (
+                <span className="inline-block w-4 h-4 text-gray-700">{team.userRank}</span>
+              )}
+              <span
+                className={`font-medium ${
+                  team.userRank === 1 ? 'text-yellow-600' : team.userRank === 2 ? 'text-gray-400' : team.userRank === 3 ? 'text-amber-600' : 'text-gray-700'
+                }`}
+              >
+                {team.userRank}
+              </span>
+            </div>
+            <span className="font-medium text-indigo-700">You</span>
+          </div>
+          <div className="font-bold">{team.fantasyTeamPoints || 0}</div>
+        </div>
+      </div>
+    )}
+  </div>
+</aside>
+      </div>
+
+      {/* Withdrawal Form Modal */}
+      {showWithdrawalForm && (
+        <WithdrawalForm
+          contestId={team.contestId}
+          fantasyTeamId={team.fantasyTeamId}
+          onSuccess={(result) => {
+            setShowWithdrawalForm(false);
+            // Optionally show success message
+            alert('Withdrawal request submitted successfully!');
+          }}
+          onCancel={() => setShowWithdrawalForm(false)}
+        />
+      )}
     </motion.div>
   );
 };

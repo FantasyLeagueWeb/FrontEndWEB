@@ -7,10 +7,12 @@ import { FaSave, FaTimes } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthContext';
+import { useToast } from '../Shared/Toast';
 
 const UserForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { success, error } = useToast();
   const isEdit = !!id;
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -47,6 +49,49 @@ const UserForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!firstName.trim()) {
+      error('Validation Error', 'First Name is required.');
+      return;
+    }
+    if (!lastName.trim()) {
+      error('Validation Error', 'Last Name is required.');
+      return;
+    }
+    if (!phoneNumber.trim()) {
+      error('Validation Error', 'Phone Number is required.');
+      return;
+    }
+    if (!username.trim()) {
+      error('Validation Error', 'Email is required.');
+      return;
+    }
+    
+    // Phone number pattern validation (only digits, 10-15 digits)
+    const phonePattern = /^[0-9]{10,15}$/;
+    if (!phonePattern.test(phoneNumber.replace(/\D/g, ''))) {
+      error('Validation Error', 'Please enter a valid phone number (10-15 digits only).');
+      return;
+    }
+    
+    // Email pattern validation
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(username)) {
+      error('Validation Error', 'Please enter a valid email address.');
+      return;
+    }
+    
+    // Password validation (required for new users, optional for edit)
+    if (!isEdit && !password.trim()) {
+      error('Validation Error', 'Password is required for new users.');
+      return;
+    }
+    if (password && password.length < 6) {
+      error('Validation Error', 'Password must be at least 6 characters long.');
+      return;
+    }
+    
     const userData = {
       userId: isEdit ? parseInt(id) : 0,
       username,
@@ -61,12 +106,75 @@ const UserForm = () => {
     try {
       if (isEdit) {
         await userService.updateUser(userData);
+        success('User Updated!', 'User has been updated successfully.');
       } else {
         await userService.addUser(userData);
+        success('User Created!', 'New user has been created successfully.');
       }
       navigate('/users');
-    } catch (error) {
-      console.error('Failed to save user', error);
+    } catch (err) {
+      console.error('Failed to save user', err);
+      console.log('User save error:', err);
+      console.log('Error response:', err.response);
+      console.log('Error data:', err.response?.data);
+      
+      // Extract error message from different possible locations
+      let errorMessage = '';
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.response?.data) {
+        errorMessage = typeof err.response.data === 'string' ? err.response.data : JSON.stringify(err.response.data);
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      console.log('Extracted error message:', errorMessage);
+      
+      // Clean up long error messages and extract key information
+      const cleanErrorMessage = errorMessage.toLowerCase();
+      
+      // Check for database constraint violations (Entity Framework errors)
+      if (cleanErrorMessage.includes('violation of unique key constraint') || 
+          cleanErrorMessage.includes('cannot insert duplicate key') ||
+          cleanErrorMessage.includes('duplicate key value') ||
+          cleanErrorMessage.includes('uq__users__') ||
+          cleanErrorMessage.includes('unique constraint')) {
+        error('Email Already Exists', 'This email address is already registered. Please use a different email.');
+      }
+      // Check for email/username already exists error (multiple patterns)
+      else if (cleanErrorMessage.includes('username') && 
+          (cleanErrorMessage.includes('exist') || 
+           cleanErrorMessage.includes('already') ||
+           cleanErrorMessage.includes('duplicate') ||
+           cleanErrorMessage.includes('taken'))) {
+        error('Email Already Exists', 'This email address is already registered. Please use a different email.');
+      } else if (cleanErrorMessage.includes('email') && 
+                 (cleanErrorMessage.includes('exist') || 
+                  cleanErrorMessage.includes('already') ||
+                  cleanErrorMessage.includes('duplicate') ||
+                  cleanErrorMessage.includes('taken'))) {
+        error('Email Already Exists', 'This email address is already registered. Please use a different email.');
+      } else if (err.response?.status === 400) {
+        // Handle 400 status code specifically for duplicate email
+        error('Email Already Exists', 'This email address is already registered. Please use a different email.');
+      } else if (err.response?.status === 500) {
+        // Check if it's a database constraint error in 500 response
+        if (cleanErrorMessage.includes('violation') || 
+            cleanErrorMessage.includes('duplicate') ||
+            cleanErrorMessage.includes('unique constraint')) {
+          error('Email Already Exists', 'This email address is already registered. Please use a different email.');
+        } else {
+          error('Server Error', 'There was a server error. Please try again later.');
+        }
+      } else {
+        // For other errors, show a clean message instead of the long error
+        const shortMessage = errorMessage.length > 100 ? 
+          errorMessage.substring(0, 100) + '...' : 
+          errorMessage;
+        error('User Save Failed', shortMessage || 'Failed to save user. Please try again.');
+      }
     }
   };
 
@@ -159,11 +267,13 @@ const UserForm = () => {
           <div>
             <label className="block text-gray-700 font-medium mb-1" htmlFor="phoneNumber">Phone Number</label>
             <input
-              type="text"
+              type="tel"
               id="phoneNumber"
+              placeholder="Phone Number (10-15 digits)"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              required
             />
           </div>
           <div className="flex space-x-4">

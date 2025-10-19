@@ -78,8 +78,8 @@ const PaymentRequestDetail = () => {
         </div>
         <p className="text-gray-700 text-lg mb-2"><strong>User ID:</strong> {payment.userId}</p>
         <p className="text-gray-700 text-lg mb-2"><strong>User Name:</strong> {payment.userFullName}</p>
-        <p className="text-gray-700 text-lg mb-2"><strong>User Entered Amount:</strong> ${payment.userEnteredAmount}</p>
-        {payment.adminApprovedAmount && <p className="text-gray-700 text-lg mb-2"><strong>Approved Amount:</strong> ${payment.adminApprovedAmount}</p>}
+        <p className="text-gray-700 text-lg mb-2"><strong>User Entered Amount:</strong> {payment.userEnteredAmount} Rs</p>
+        {payment.adminApprovedAmount && <p className="text-gray-700 text-lg mb-2"><strong>Approved Amount:</strong> {payment.adminApprovedAmount} Rs</p>}
         <p className="text-gray-700 text-lg mb-2"><strong>Status:</strong> {payment.status}</p>
         <p className="text-gray-700 text-lg mb-2"><strong>Created At:</strong> {new Date(payment.createdAt).toLocaleString()}</p>
         {payment.urlProof && (
