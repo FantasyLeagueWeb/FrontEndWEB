@@ -1,9 +1,10 @@
 // Frontend: Updated PaymentForm.js (user side, add only, no edit, with payment info, file upload, enhanced UI)
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import paymentService from '../../services/paymentService';
-import { FaSave, FaTimes, FaUpload } from 'react-icons/fa';
+import paymentAccountService from '../../services/paymentAccountService';
+import { FaSave, FaTimes, FaUpload, FaSpinner } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useToast } from '../Shared/Toast';
@@ -13,6 +14,24 @@ const PaymentForm = () => {
   const { success, error } = useToast();
   const [userEnteredAmount, setUserEnteredAmount] = useState('');
   const [proof, setProof] = useState(null);
+  const [paymentAccounts, setPaymentAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPaymentAccounts = async () => {
+      try {
+        const accounts = await paymentAccountService.getActivePaymentAccounts();
+        setPaymentAccounts(accounts);
+      } catch (err) {
+        console.error('Failed to fetch payment accounts:', err);
+        error('Error', 'Failed to load payment accounts. Please refresh the page.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPaymentAccounts();
+  }, [error]);
 
   const handleFileChange = (e) => {
     setProof(e.target.files[0]);
@@ -49,11 +68,23 @@ const PaymentForm = () => {
         <div className="mb-6 bg-indigo-100 p-4 rounded-lg">
           <h3 className="text-xl font-semibold mb-2">Payment Information</h3>
           <p>Transfer the amount to one of the following accounts and upload the screenshot:</p>
-          <ul className="list-disc pl-5 mt-2">
-            <li>JazzCash: 0300-1234567</li>
-            <li>EasyPaisa: 0300-7654321</li>
-            <li>Bank Account: IBAN PK12ABCD0000000000000000</li>
-          </ul>
+          {loading ? (
+            <div className="flex items-center justify-center mt-4">
+              <FaSpinner className="animate-spin mr-2" />
+              <span>Loading payment accounts...</span>
+            </div>
+          ) : (
+            <ul className="list-disc pl-5 mt-2">
+              {paymentAccounts.map((account) => (
+                <li key={account.paymentAccountId} className="mb-1">
+                  <strong>{account.bankName}:</strong> {account.accountNumber}
+                  {account.title && (
+                    <span className="text-gray-600 text-sm ml-2">({account.title})</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
