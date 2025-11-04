@@ -234,7 +234,7 @@ const WithdrawalManagement = () => {
                 <h4 className="font-semibold text-gray-900 mb-2">Withdrawal Details</h4>
                 <div className="space-y-2 text-sm">
                   <p><strong>User:</strong> User #{selectedWithdrawal.userId}</p>
-                  <p><strong>Amount:</strong> ₹{selectedWithdrawal.prizeAmount?.toLocaleString()}</p>
+                  <p><strong>Amount:</strong> Rs {selectedWithdrawal.prizeAmount?.toLocaleString()}</p>
                   <p><strong>Bank:</strong> {selectedWithdrawal.bankName}</p>
                   <p><strong>Account:</strong> {selectedWithdrawal.accountNumber}</p>
                   <p><strong>Holder:</strong> {selectedWithdrawal.accountHolderName}</p>

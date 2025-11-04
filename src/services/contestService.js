@@ -1,8 +1,8 @@
 import api from './api';
 
 const contestService = {
-  getAllContests: async () => {
-    const response = await api.get('/contest');
+  getAllContests: async (params = {}) => {
+    const response = await api.get('/contest', { params });
     return response.data;
   },
   getContestById: async (id) => {

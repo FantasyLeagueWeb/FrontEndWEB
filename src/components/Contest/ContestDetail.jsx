@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import contestService from '../../services/contestService';
 import paymentService from '../../services/paymentService';
-import { FaEdit } from 'react-icons/fa';
+import { FaEdit, FaTrash } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { AuthContext } from '../../contexts/AuthContext';
 
@@ -15,6 +15,7 @@ const ContestDetail = () => {
   const { user } = useContext(AuthContext);
   const isAdmin = user?.role === 'Admin';
   const [showInsufficientBalance, setShowInsufficientBalance] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -56,6 +57,25 @@ const ContestDetail = () => {
 
   const handleCloseModal = () => {
     setShowInsufficientBalance(false);
+  };
+
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await contestService.deleteContest(id);
+      navigate('/contests');
+    } catch (error) {
+      console.error('Failed to delete contest', error);
+      alert('Failed to delete contest');
+      setShowDeleteConfirm(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false);
   };
 
   if (loading) {
@@ -228,29 +248,38 @@ const ContestDetail = () => {
           </motion.div>
         </div>
 
-        <div className="flex justify-center mt-6 space-x-6">
+        <div className="flex flex-wrap justify-center gap-3 mt-6">
           {user?.role?.toLowerCase() === 'admin' && (
-            <Link
-              to={`/contests/edit/${id}`}
-              className="bg-indigo-600 text-white px-6 py-2 rounded-full hover:bg-indigo-700 transition-colors duration-200 flex items-center transform hover:scale-105"
-            >
-              <FaEdit className="mr-2" />
-              Edit Contest
-            </Link>
+            <>
+              <Link
+                to={`/contests/edit/${id}`}
+                className="bg-indigo-600 text-white px-4 sm:px-6 py-2 rounded-full hover:bg-indigo-700 transition-colors duration-200 flex items-center justify-center transform hover:scale-105 text-sm sm:text-base whitespace-nowrap"
+              >
+                <FaEdit className="mr-2" />
+                Edit Contest
+              </Link>
+              <button
+                onClick={handleDeleteClick}
+                className="bg-red-600 text-white px-4 sm:px-6 py-2 rounded-full hover:bg-red-700 transition-colors duration-200 flex items-center justify-center transform hover:scale-105 text-sm sm:text-base whitespace-nowrap"
+              >
+                <FaTrash className="mr-2" />
+                Delete Contest
+              </button>
+            </>
           )}
           
           {contest.contestStatus === 'Finished' && (
             <Link
               to={`/contests/${id}/winners`}
-              className="bg-yellow-600 text-white px-6 py-2 rounded-full hover:bg-yellow-700 transition-colors duration-200 flex items-center transform hover:scale-105"
+              className="bg-yellow-600 text-white px-4 sm:px-6 py-2 rounded-full hover:bg-yellow-700 transition-colors duration-200 flex items-center justify-center transform hover:scale-105 text-sm sm:text-base whitespace-nowrap"
             >
-              🏆 View Contest Winners
+              🏆 View Winners
             </Link>
           )}
           
           <button
             onClick={handleCreateFantasyTeam}
-            className="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition-colors duration-200 flex items-center transform hover:scale-105"
+            className="bg-green-600 text-white px-4 sm:px-6 py-2 rounded-full hover:bg-green-700 transition-colors duration-200 flex items-center justify-center transform hover:scale-105 text-sm sm:text-base whitespace-nowrap"
           >
             Create Fantasy Team
           </button>
@@ -258,27 +287,62 @@ const ContestDetail = () => {
       </div>
 
       {showInsufficientBalance && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
-            className="bg-white p-8 rounded-lg shadow-xl max-w-sm w-full"
+            className="bg-white p-6 sm:p-8 rounded-lg shadow-xl max-w-sm w-full mx-4"
           >
             <h3 className="text-xl font-semibold mb-4 text-red-600">Insufficient Balance</h3>
             <p className="text-gray-700 mb-6">You don't have sufficient balance. Please recharge.</p>
-            <div className="flex justify-end space-x-4">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4">
               <button
                 onClick={handleCloseModal}
-                className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition-colors"
+                className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition-colors w-full sm:w-auto"
               >
                 Close
               </button>
               <button
                 onClick={handleRecharge}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors w-full sm:w-auto"
               >
                 Recharge
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white p-6 sm:p-8 rounded-lg shadow-xl max-w-md w-full mx-4"
+          >
+            <div className="flex items-center mb-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mr-4">
+                <FaTrash className="text-red-600 text-xl" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900">Delete Contest</h3>
+            </div>
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete this contest? This action cannot be undone. The contest will be marked as deleted and will no longer be visible in the contest list.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4">
+              <button
+                onClick={handleDeleteCancel}
+                className="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 transition-colors font-medium w-full sm:w-auto"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium w-full sm:w-auto"
+              >
+                Delete Contest
               </button>
             </div>
           </motion.div>
